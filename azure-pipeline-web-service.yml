@@ -1,0 +1,67 @@
+# Web Service
+
+pool:
+  vmImage: 'VS2017-Win2016'
+
+variables:
+  solution: '**/*.sln'
+  buildConfiguration: 'Release'
+  processorProject: 'WebService.Processor.csproj'
+  webServiceProject: 'WebService.csproj'
+  migratorProject: 'WebService.DbMigrator.csproj'
+  seederProject: 'WebService.DbSeeder.csproj'
+  webServicePublishPath: 'WebService/obj/Release/Package'
+  migratorPublishPath: 'WebService.DbMigrator/bin/Debug/netcoreapp2.1/publish'
+  seederPublishPath: 'WebService.DbSeeder/bin/Debug/netcoreapp2.1/publish'
+
+steps:
+- task: NuGetToolInstaller@0
+  displayName: 'Install NuGet'
+
+- task: NuGetCommand@2
+  displayName: 'Solution NuGet Restore'
+  inputs:
+    restoreSolution: '$(solution)'
+
+- task: VSBuild@1
+  displayName: 'Build Processor'
+  inputs:
+    solution: '$(processorProject)'
+    configuration: '$(buildConfiguration)'
+
+- task: VSBuild@1
+  displayName: 'Build Web Service'
+  inputs:
+    solution: '$(webServiceProject)'
+    msbuildArgs: '/p:DeployOnBuild=true /p:WebPublishMethod=Package /p:PackageAsSingleFile=true /p:SkipInvalidConfigurations=true'
+    configuration: '$(buildConfiguration)'
+
+- script: dotnet publish $(migratorProject)
+  displayName: 'Build and Package Database Migrator'
+
+- script: dotnet publish $(seederProject)
+  displayName: 'Build and Package Database Seeder'
+
+- task: PublishBuildArtifacts@1
+  displayName: 'Publish Web Service Artifacts'
+  inputs:
+    pathtoPublish: '$(webServicePublishPath)'
+    artifactName: drop
+
+- task: PublishBuildArtifacts@1
+  displayName: 'Publish Terraform Artifacts'
+  inputs:
+    pathtoPublish: 'terraform'
+    artifactName: terraform
+
+- task: PublishBuildArtifacts@1
+  displayName: 'Publish Database Migrator Artifacts'
+  inputs:
+    pathtoPublish: '$(migratorPublishPath)'
+    artifactName: migrator
+
+- task: PublishBuildArtifacts@1
+  displayName: 'Publish Database Seeder Artifacts'
+  inputs:
+    pathtoPublish: '$(seederPublishPath)'
+    artifactName: seeder
