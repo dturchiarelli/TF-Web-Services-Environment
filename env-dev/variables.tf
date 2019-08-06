@@ -3,13 +3,13 @@
 variable "environment_prefix" {
   description = "The prefix for the environment."
   type        = "string"
-  default     = "d"          # this is different for each environment
+  default     = "env-dev"          # this is different for each environment
 }
 
 variable "location" {
   description = "Specifies the supported Azure location where the resource exists. Changing this forces a new resource to be created."
   type        = "string"
-  default     = "eastus"
+  default     = "Australia Southeast"
 }
 
 variable "tags" {
